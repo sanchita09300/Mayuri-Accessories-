@@ -1,0 +1,19 @@
+# Database / environment secrets
+.env
+.env.*
+config/database.php
+config/google_config.php
+config/mail_config.php
+config/fast2sms_config.php
+
+# Local development files
+.vscode/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
