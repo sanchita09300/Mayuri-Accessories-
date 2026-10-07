@@ -7,6 +7,17 @@ $orders   = $conn->query("SELECT COUNT(*) c FROM orders")->fetch_assoc()['c'];
 $revenue  = $conn->query("SELECT COALESCE(SUM(total),0) t FROM orders")->fetch_assoc()['t'];
 $pending  = $conn->query("SELECT COUNT(*) c FROM orders WHERE payment_status LIKE 'Pending%'")->fetch_assoc()['c'];
 $waiting  = $conn->query("SELECT COUNT(*) c FROM product_waitlist WHERE status='waiting'")->fetch_assoc()['c'];
+$one = function($sql) use ($conn){ return (int)$conn->query($sql)->fetch_row()[0]; };
+$st = [
+ 'Pending orders'=>$one("SELECT COUNT(*) FROM orders WHERE order_status IN ('Placed','Pending Payment','Payment Verification','Confirmed')"),
+ 'Processing'=>$one("SELECT COUNT(*) FROM orders WHERE order_status IN ('Processing','Packed','Shipped','Out for Delivery')"),
+ 'Delivered'=>$one("SELECT COUNT(*) FROM orders WHERE order_status='Delivered'"),
+ 'Cancelled'=>$one("SELECT COUNT(*) FROM orders WHERE order_status='Cancelled'"),
+ 'Customers'=>$one("SELECT COUNT(*) FROM users WHERE role<>'admin'"),
+ 'Low stock (1-5)'=>$one("SELECT COUNT(*) FROM products WHERE stock BETWEEN 1 AND 5"),
+ 'Out of stock'=>$one("SELECT COUNT(*) FROM products WHERE stock<=0 OR status='out_of_stock'"),
+];
+$revenue = $conn->query("SELECT COALESCE(SUM(total),0) FROM orders WHERE payment_status='Paid' AND order_status<>'Cancelled'")->fetch_row()[0];
 $recent   = $conn->query("SELECT * FROM orders ORDER BY id DESC LIMIT 5");
 ?>
 <!doctype html>
@@ -52,7 +63,7 @@ $recent   = $conn->query("SELECT * FROM orders ORDER BY id DESC LIMIT 5");
 <body>
 <div class="admin-wrap">
     <aside class="admin-sidebar">
-        <a class="sidebar-brand" href="../index.php">MAYURI ÃƒÂ¢Ãƒâ€¦Ã¢â‚¬Å“Ã‚Â¦</a>
+        <a class="sidebar-brand" href="../index.php">MAYURI ÃƒÆ’Ã‚Â¢ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒâ€šÃ‚Â¦</a>
         <a href="index.php" class="active">Dashboard</a>
         <a href="products.php">Products</a>
         <a href="product_form.php">Add Product</a>
@@ -63,6 +74,8 @@ $recent   = $conn->query("SELECT * FROM orders ORDER BY id DESC LIMIT 5");
     </aside>
 
     <main class="admin-main">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:0 0 20px"><?php foreach($st as $k=>$v): ?><div style="background:#fff;border-radius:10px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)"><div style="font-size:.72rem;text-transform:uppercase;color:var(--muted)"><?=e($k)?></div><div style="font-size:1.5rem;font-weight:600"><?=$v?></div></div><?php endforeach; ?></div>
+
         <div class="admin-header">
             <h1>Dashboard</h1>
             <p>Welcome back! Here's an overview of your store.</p>

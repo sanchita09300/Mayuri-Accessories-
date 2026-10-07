@@ -3,8 +3,10 @@ $oid = (int)($_GET['order_id'] ?? 0);
 $order = null; $order_items = [];
 
 if($oid){
-    $r = $conn->prepare("SELECT * FROM orders WHERE id=?");
-    $r->bind_param('i', $oid);
+    if(!is_logged_in()) redirect('login.php');
+    $r = $conn->prepare("SELECT * FROM orders WHERE id=? AND (user_id=? OR ?=1)");
+    $uidv = (int)$_SESSION['user_id']; $adm = is_admin() ? 1 : 0;
+    $r->bind_param('iii', $oid, $uidv, $adm);
     $r->execute();
     $order = $r->get_result()->fetch_assoc();
 
@@ -23,10 +25,10 @@ function statusColor($s){
 
 <div class="container" style="max-width:700px;padding-top:40px;padding-bottom:60px">
     <div class="success-wrap" style="text-align:center;margin-bottom:32px">
-        <div class="success-icon">ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â°</div>
-        <h1>Order Confirmed!</h1>
+        <div class="success-icon">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¦Ã‚Â½ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°</div>
+        <h1>Order Placed!</h1>
         <p>Thank you for shopping with <strong>MAYURI Accessories</strong>.</p>
-        <p style="color:var(--muted);margin-top:6px">We've received your order and will process it shortly.</p>
+        <p style="color:var(--muted);margin-top:6px">We've received your order. It will be processed once your UPI payment is verified.</p>
         <?php if($oid): ?>
             <div class="order-id-tag">Order #<?=$oid?></div>
         <?php endif; ?>
@@ -68,7 +70,7 @@ function statusColor($s){
 
         <!-- Delivery Address -->
         <div style="padding:16px 20px;border-top:1px solid var(--border,#e5e5e5);background:var(--cream,#faf8f5)">
-            <div style="font-size:0.8rem;color:var(--muted);font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Delivery Address</div>
+            <div style="font-size:0.8rem;color:var(--muted);font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒâ€šÃ‚Â Delivery Address</div>
             <div style="font-size:0.88rem;line-height:1.7">
                 <strong><?=e($order['customer_name'])?></strong><br>
                 <?php if(!empty($order['address_line1'])): ?>
@@ -78,7 +80,7 @@ function statusColor($s){
                 <?php else: ?>
                     <?=nl2br(e($order['address']))?>
                 <?php endif; ?>
-                <br>ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â¾ <?=e($order['phone'])?>
+                <br>ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒâ€¦Ã‚Â¾ <?=e($order['phone'])?>
             </div>
         </div>
 
@@ -104,7 +106,7 @@ function statusColor($s){
         $cancelled = $curr === 'Cancelled';
         $labels = $cancelled
             ? [['Order Placed','Your order was received'],['Cancelled','Order has been cancelled']]
-            : [['Order Placed','Your order is confirmed'],['Processing','Being prepared for dispatch'],['On the Way','Estimated 3Ã¢â‚¬â€œ5 business days'],['Delivered','Enjoy your purchase!']];
+            : [['Order Placed','Your order is confirmed'],['Processing','Being prepared for dispatch'],['On the Way','Estimated 3ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“5 business days'],['Delivered','Enjoy your purchase!']];
         $currStep = $cancelled ? 1 : $steps[$curr];
         ?>
         <div style="display:flex;align-items:flex-start;gap:0">
@@ -115,7 +117,7 @@ function statusColor($s){
                 <div style="position:absolute;top:14px;left:50%;width:100%;height:2px;background:<?=$done&&$i<$currStep?'var(--primary,#8b6914)':'#e5e5e5'?>;z-index:0"></div>
                 <?php endif; ?>
                 <div style="width:28px;height:28px;border-radius:50%;background:<?=$done?'var(--primary,#8b6914)':'#e5e5e5'?>;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;z-index:1;position:relative">
-                    <?=$done?'ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“':($i+1)?>
+                    <?=$done?'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ':($i+1)?>
                 </div>
                 <div style="margin-top:8px;text-align:center;padding:0 4px">
                     <div style="font-size:0.72rem;font-weight:700;color:<?=$done?'var(--primary,#8b6914)':'#aaa'?>"><?=$label?></div>
@@ -129,7 +131,7 @@ function statusColor($s){
 
     <div style="text-align:center;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
         <?php if(isset($_SESSION['user_id'])): ?>
-        <a class="btn light" href="my_orders.php">ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¦ My Orders</a>
+        <a class="btn light" href="my_orders.php">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒâ€šÃ‚Â¦ My Orders</a>
         <?php endif; ?>
         <a class="btn gold" href="collection.php">Continue Shopping &rarr;</a>
         <a class="btn light" href="index.php">&larr; Back to Home</a>

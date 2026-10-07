@@ -5,15 +5,34 @@ require_admin();
 if(isset($_POST['order_id'])){
     verify_csrf();
     $id = (int)$_POST['order_id'];
-    $status = $_POST['order_status'];
-    $tracking = trim($_POST['tracking_number'] ?? '');
-    if(!in_array($status, ['Placed','Processing','Shipped','Delivered','Cancelled'])) $status='Placed';
-    $stmt = $conn->prepare("UPDATE orders SET order_status=?, tracking_number=? WHERE id=?");
-    $stmt->bind_param('ssi',$status,$tracking,$id);
-    $stmt->execute();
+    $status = in_array($_POST['order_status'] ?? '', order_statuses(), true) ? $_POST['order_status'] : 'Placed';
+    $pst = in_array($_POST['payment_status'] ?? '', payment_statuses(), true) ? $_POST['payment_status'] : 'Pending Verification';
+    $tracking = substr(trim($_POST['tracking_number'] ?? ''), 0, 80);
+    try {
+        $conn->begin_transaction();
+        $stmt = $conn->prepare("SELECT stock_restored FROM orders WHERE id=? FOR UPDATE");
+        $stmt->bind_param('i',$id); $stmt->execute();
+        $cur = $stmt->get_result()->fetch_assoc();
+        if($cur){
+            // Cancelling an order puts its stock back exactly once.
+            if($status==='Cancelled' && !(int)$cur['stock_restored']){
+                $conn->query("UPDATE products p JOIN order_items oi ON oi.product_id=p.id SET p.stock=p.stock+oi.quantity, p.status='in_stock' WHERE oi.order_id=".$id);
+                $conn->query("UPDATE orders SET stock_restored=1 WHERE id=".$id);
+            }
+            $stmt = $conn->prepare("UPDATE orders SET order_status=?, payment_status=?, tracking_number=? WHERE id=?");
+            $stmt->bind_param('sssi',$status,$pst,$tracking,$id); $stmt->execute();
+        }
+        $conn->commit();
+    } catch(Throwable $ex){ try{$conn->rollback();}catch(Throwable $x){} error_log('MAYURI admin order update: '.$ex->getMessage()); }
     redirect('orders.php');
 }
-$orders = $conn->query("SELECT * FROM orders ORDER BY id DESC");
+$q = trim($_GET['q'] ?? ''); $fs = $_GET['status'] ?? ''; $fp = $_GET['pay'] ?? '';
+$sql = "SELECT * FROM orders WHERE 1"; $types=''; $args=[];
+if($q!==''){ $sql.=" AND (order_number LIKE ? OR customer_name LIKE ? OR phone LIKE ? OR id=?)"; $like='%'.$q.'%'; $types.='sssi'; array_push($args,$like,$like,$like,(int)$q); }
+if(in_array($fs,order_statuses(),true)){ $sql.=" AND order_status=?"; $types.='s'; $args[]=$fs; }
+if(in_array($fp,payment_statuses(),true)){ $sql.=" AND payment_status=?"; $types.='s'; $args[]=$fp; }
+$stmt=$conn->prepare($sql." ORDER BY id DESC"); if($args) $stmt->bind_param($types,...$args); $stmt->execute();
+$orders=$stmt->get_result();
 ?>
 <!doctype html>
 <html lang="en">
@@ -36,7 +55,7 @@ $orders = $conn->query("SELECT * FROM orders ORDER BY id DESC");
 <body>
 <div class="admin-wrap">
     <aside class="admin-sidebar">
-        <a class="sidebar-brand" href="../index.php">MAYURI âœ¦</a>
+        <a class="sidebar-brand" href="../index.php">MAYURI Ã¢Å“Â¦</a>
         <a href="index.php">Dashboard</a>
         <a href="products.php">Products</a>
         <a href="product_form.php">Add Product</a>
@@ -47,6 +66,12 @@ $orders = $conn->query("SELECT * FROM orders ORDER BY id DESC");
     <main class="admin-main">
         <h1 style="margin-bottom:28px">Orders</h1>
         <div class="table-wrap" style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden">
+        <form method="get" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+            <input name="q" value="<?=e($q)?>" placeholder="Order no. / customer / phone" style="margin:0;max-width:240px">
+            <select name="status" style="margin:0;width:auto"><option value="">All order status</option><?php foreach(order_statuses() as $x) echo '<option'.($fs===$x?' selected':'').'>'.e($x).'</option>'; ?></select>
+            <select name="pay" style="margin:0;width:auto"><option value="">All payments</option><?php foreach(payment_statuses() as $x) echo '<option'.($fp===$x?' selected':'').'>'.e($x).'</option>'; ?></select>
+            <button class="btn secondary">Filter</button> <a class="btn light" href="orders.php">Reset</a>
+        </form>
         <table class="table">
             <thead>
                 <tr><th>#</th><th>Customer</th><th>Phone</th><th>Payment</th><th>Total</th><th>Status</th><th>Update</th></tr>
@@ -54,7 +79,7 @@ $orders = $conn->query("SELECT * FROM orders ORDER BY id DESC");
             <tbody>
             <?php while($o = $orders->fetch_assoc()): ?>
             <tr>
-                <td style="font-weight:600;color:var(--primary)">#<?=$o['id']?></td>
+                <td style="font-weight:600;color:var(--primary)"><?=e($o['order_number'] ?: '#'.$o['id'])?> <a href="../invoice.php?order_id=<?=$o['id']?>" target="_blank" style="font-size:.7rem">Invoice</a></td>
                 <td>
                     <strong><?=e($o['customer_name'])?></strong>
                     <div style="font-size:0.78rem;color:var(--muted);max-width:160px"><?=e($o['address'])?></div>
@@ -70,9 +95,12 @@ $orders = $conn->query("SELECT * FROM orders ORDER BY id DESC");
                     <form method="post" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><?=csrf_field()?>
                         <input type="hidden" name="order_id" value="<?=$o['id']?>">
                         <select name="order_status" style="margin-bottom:0;width:auto;font-size:0.82rem;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg)">
-                            <?php foreach(['Placed','Processing','Shipped','Delivered','Cancelled'] as $s): ?>
+                            <?php foreach(order_statuses() as $s): ?>
                                 <option <?=($o['order_status']??'')==$s?'selected':''?>><?=$s?></option>
                             <?php endforeach; ?>
+                        </select>
+                        <select name="payment_status" style="margin-bottom:0;width:auto;font-size:0.82rem;padding:7px 10px">
+                            <?php foreach(payment_statuses() as $ps): ?><option <?=($o['payment_status']??'')==$ps?'selected':''?>><?=e($ps)?></option><?php endforeach; ?>
                         </select>
                         <input name="tracking_number" value="<?=e($o['tracking_number']??'')?>" placeholder="Tracking no." style="width:130px;margin-bottom:0;font-size:.78rem;padding:7px 10px">
                         <button style="padding:8px 14px;font-size:0.78rem">Save</button>

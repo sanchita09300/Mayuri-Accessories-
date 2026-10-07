@@ -6,8 +6,10 @@ if(isset($_GET['remove'])){
 if($_SERVER['REQUEST_METHOD']=='POST'){
     verify_csrf();
     foreach($_POST['qty']??[] as $id => $q){
-        $q = max(1, (int)$q);
-        $_SESSION['cart'][(int)$id] = $q;
+        $st = $conn->prepare("SELECT stock FROM products WHERE id=?"); $pid=(int)$id; $st->bind_param('i',$pid); $st->execute();
+        $row = $st->get_result()->fetch_assoc();
+        if(!$row || (int)$row['stock'] < 1){ unset($_SESSION['cart'][$pid]); continue; }
+        $_SESSION['cart'][$pid] = min(max(1, (int)$q), (int)$row['stock']);
     }
     redirect('shopping_cart.php');
 }
@@ -15,12 +17,17 @@ $items = []; $total = 0;
 if(!empty($_SESSION['cart'])){
     $ids = implode(',', array_map('intval', array_keys($_SESSION['cart'])));
     $res = $conn->query("SELECT * FROM products WHERE id IN ($ids)");
+    $found = [];
     while($p = $res->fetch_assoc()){
+        if($p['status']==='out_of_stock' || (int)$p['stock'] < 1){ unset($_SESSION['cart'][$p['id']]); continue; }
+        $found[] = (int)$p['id'];
+        $_SESSION['cart'][$p['id']] = min((int)$_SESSION['cart'][$p['id']], (int)$p['stock']);
         $p['qty'] = $_SESSION['cart'][$p['id']];
         $p['subtotal'] = $p['qty'] * $p['price'];
         $total += $p['subtotal'];
         $items[] = $p;
     }
+    foreach(array_keys($_SESSION['cart']) as $cid){ if(!in_array((int)$cid,$found,true)) unset($_SESSION['cart'][$cid]); }
 }
 ?>
 
@@ -35,7 +42,7 @@ if(!empty($_SESSION['cart'])){
 <div class="container section">
     <?php if(!$items): ?>
         <div style="text-align:center;padding:60px 0" class="animate-fade-up">
-            <div style="font-size:3.5rem;margin-bottom:20px">Ã°Å¸â€ºÂÃ¯Â¸Â</div>
+            <div style="font-size:3.5rem;margin-bottom:20px">ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂºÃ‚ÂÃƒÂ¯Ã‚Â¸Ã‚Â</div>
             <h2 style="margin-bottom:10px">Your cart is empty</h2>
             <p style="color:var(--muted);margin-bottom:32px">Explore our collection and find something you love.</p>
             <a class="btn gold" href="collection.php">Browse Collection</a>
@@ -94,7 +101,7 @@ if(!empty($_SESSION['cart'])){
                     <div class="cart-total">&#8377;<?=number_format($total,2)?></div>
                 </div>
                 <a class="btn gold" style="width:100%;justify-content:center;margin-top:20px;padding:14px" href="checkout.php">Proceed to Checkout &rarr;</a>
-                <p style="font-size:0.75rem;color:var(--muted);text-align:center;margin-top:10px">Ã°Å¸â€â€™ Secure checkout</p>
+                <p style="font-size:0.75rem;color:var(--muted);text-align:center;margin-top:10px">ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â„¢ Secure checkout</p>
             </div>
         </div>
     <?php endif; ?>

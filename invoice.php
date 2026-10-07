@@ -113,7 +113,7 @@ $items = $conn->query("SELECT * FROM order_items WHERE order_id = " . (int) $id)
 
     <div class="row">
         <div>
-            <strong>Invoice #<?= $id ?></strong><br>
+            <strong>Invoice #<?= e($o['order_number'] ?: $id) ?></strong><br>
             Date: <?= date('d M Y', strtotime($o['created_at'])) ?><br>
             Status: <?= e($o['order_status']) ?>
         </div>
@@ -138,14 +138,14 @@ $items = $conn->query("SELECT * FROM order_items WHERE order_id = " . (int) $id)
             <tr>
                 <td><?= e($it['product_name']) ?></td>
                 <td><?= e($it['quantity']) ?></td>
-                <td>₹<?= number_format($it['price'], 2) ?></td>
-                <td>₹<?= number_format($it['subtotal'], 2) ?></td>
+                <td>â‚¹<?= number_format($it['price'], 2) ?></td>
+                <td>â‚¹<?= number_format($it['subtotal'], 2) ?></td>
             </tr>
         <?php endwhile; ?>
     </table>
 
     <p class="total">
-        Total: ₹<?= number_format($o['total'], 2) ?>
+        Total: â‚¹<?= number_format($o['total'], 2) ?>
     </p>
 </div>
 
