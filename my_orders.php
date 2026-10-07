@@ -20,7 +20,19 @@ if($orders){
 }
 
 function statusColor($s){
-    return ['Pending'=>'#f59e0b','Processing'=>'#3b82f6','Completed'=>'#10b981','Cancelled'=>'#ef4444'][$s] ?? '#888';
+    $map = [
+        'Placed'               => '#6366f1',
+        'Pending Payment'      => '#f59e0b',
+        'Payment Verification' => '#f59e0b',
+        'Confirmed'            => '#3b82f6',
+        'Processing'           => '#3b82f6',
+        'Packed'               => '#8b5cf6',
+        'Shipped'              => '#0891b2',
+        'Out for Delivery'     => '#0891b2',
+        'Delivered'            => '#10b981',
+        'Cancelled'            => '#ef4444',
+    ];
+    return $map[$s] ?? '#888';
 }
 function payColor($s){
     return $s==='Paid' ? '#10b981' : '#f59e0b';
@@ -39,7 +51,7 @@ function payColor($s){
 
 <?php if(empty($orders)): ?>
     <div style="text-align:center;padding:60px 20px">
-        <div style="font-size:3rem;margin-bottom:16px">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂºÃƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â</div>
+        <div style="font-size:3rem;margin-bottom:16px">&#128722;&#65039;</div>
         <h2 style="font-weight:600;margin-bottom:8px">No orders yet</h2>
         <p style="color:var(--muted);margin-bottom:24px">You haven't placed any orders. Start shopping!</p>
         <a class="btn gold" href="collection.php">Browse Collection &rarr;</a>
@@ -56,7 +68,7 @@ function payColor($s){
             <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center">
                 <div>
                     <span style="font-size:0.72rem;color:var(--muted)">ORDER</span>
-                    <div style="font-weight:700;font-size:0.95rem">&nbsp;<?=e($o['order_number'] ?: '#'.$o['id'])?></div>
+                    <div style="font-weight:700;font-size:0.95rem">&nbsp;<?=e((isset($o['order_number']) && $o['order_number'] !== '') ? $o['order_number'] : '#'.$o['id'])?></div>
                 </div>
                 <div>
                     <span style="font-size:0.72rem;color:var(--muted)">PLACED ON</span>
@@ -93,7 +105,7 @@ function payColor($s){
         <!-- Delivery Address -->
         <div style="padding:12px 20px;border-top:1px solid var(--border,#e5e5e5);background:#fdfcfb;display:flex;gap:32px;flex-wrap:wrap">
             <div style="flex:1;min-width:200px">
-                <div style="font-size:0.72rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒâ€šÃ‚Â Delivery Address</div>
+                <div style="font-size:0.72rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">&#127968; Delivery Address</div>
                 <div style="font-size:0.82rem;line-height:1.7;color:var(--dark,#1a1a1a)">
                     <?php if(!empty($o['address_line1'])): ?>
                         <?=e($o['address_line1'])?><?=!empty($o['address_line2'])?', '.e($o['address_line2']):'';?><br>
@@ -101,7 +113,7 @@ function payColor($s){
                     <?php else: ?>
                         <?=nl2br(e($o['address']))?>
                     <?php endif; ?>
-                    <br><span style="color:var(--muted)">ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â¾ <?=e($o['phone'])?></span>
+                    <br><span style="color:var(--muted)">&#128222; <?=e($o['phone'])?></span>
                 </div>
             </div>
             <div>
@@ -110,30 +122,33 @@ function payColor($s){
             </div>
         </div>
 
-        <!-- Progress Bar -->
-        <div style="margin:12px 0;display:flex;gap:10px;flex-wrap:wrap">
-                    <a class="btn secondary" style="padding:7px 14px;font-size:.78rem" href="invoice.php?order_id=<?=$o['id']?>" target="_blank">Invoice / PDF</a>
-                    <?php if(!empty($o['tracking_number'])): ?><span class="badge ok">Tracking: <?=e($o['tracking_number'])?></span><?php endif; ?>
-                </div>
-                <?php if($o['order_status'] !== 'Cancelled'): ?>
+        <!-- Progress Bar & Actions -->
+        <div style="margin:12px 0;display:flex;gap:10px;flex-wrap:wrap;padding:0 20px">
+            <a class="btn secondary" style="padding:7px 14px;font-size:.78rem" href="invoice.php?order_id=<?=$o['id']?>" target="_blank">Invoice / PDF</a>
+            <?php if(!empty($o['tracking_number'])): ?><span class="badge ok">Tracking: <?=e($o['tracking_number'])?></span><?php endif; ?>
+        </div>
+        <?php if($o['order_status'] !== 'Cancelled'): ?>
         <?php
-        $stepMap = ['Pending'=>0,'Processing'=>1,'Completed'=>2];
+        $allStatuses = ['Placed','Confirmed','Processing','Packed','Shipped','Out for Delivery','Delivered'];
+        $stepMap = array_flip($allStatuses);
         $curr = $stepMap[$o['order_status']] ?? 0;
-        $labels = ['Confirmed','Processing','Delivered'];
+        $labels = ['Placed','Confirmed','Shipped','Delivered'];
+        $labelMap = [0=>0, 1=>1, 2=>2, 4=>2, 5=>3, 6=>3];
+        $currStep = $labelMap[min($curr, 6)] ?? 0;
         ?>
         <div style="padding:14px 20px;border-top:1px solid var(--border,#e5e5e5)">
             <div style="display:flex;align-items:center">
                 <?php foreach($labels as $i=>$lbl): ?>
-                <?php $done = $i<=$curr; $isLast=$i===count($labels)-1; ?>
+                <?php $done = $i<=$currStep; $isLast=$i===count($labels)-1; ?>
                 <div style="display:flex;align-items:center;flex:<?=$isLast?'0':'1'?>">
                     <div style="display:flex;flex-direction:column;align-items:center">
                         <div style="width:22px;height:22px;border-radius:50%;background:<?=$done?'var(--primary,#8b6914)':'#e0e0e0'?>;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700">
-                            <?=$done?'ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“':($i+1)?>
+                            <?=$done?'&#10004;':($i+1)?>
                         </div>
                         <div style="font-size:0.65rem;color:<?=$done?'var(--primary,#8b6914)':'#aaa'?>;margin-top:4px;font-weight:600;white-space:nowrap"><?=$lbl?></div>
                     </div>
                     <?php if(!$isLast): ?>
-                    <div style="flex:1;height:2px;background:<?=$i<$curr?'var(--primary,#8b6914)':'#e0e0e0'?>;margin:0 4px;margin-bottom:16px"></div>
+                    <div style="flex:1;height:2px;background:<?=$i<$currStep?'var(--primary,#8b6914)':'#e0e0e0'?>;margin:0 4px;margin-bottom:16px"></div>
                     <?php endif; ?>
                 </div>
                 <?php endforeach; ?>
@@ -141,7 +156,7 @@ function payColor($s){
         </div>
         <?php else: ?>
         <div style="padding:12px 20px;border-top:1px solid #fee2e2;background:#fff5f5">
-            <span style="font-size:0.8rem;color:#ef4444;font-weight:600">ÃƒÆ’Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ This order was cancelled</span>
+            <span style="font-size:0.8rem;color:#ef4444;font-weight:600">&#10060; This order was cancelled</span>
         </div>
         <?php endif; ?>
 

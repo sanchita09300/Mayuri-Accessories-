@@ -68,11 +68,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <?php if ($msg): ?>
-      <div class="alert success">Ã¢Å“â€œ <?= e($msg) ?></div>
+      <div class="alert success">&#10003; <?= e($msg) ?></div>
     <?php endif; ?>
 
     <?php if ($err): ?>
-      <div class="alert error">Ã¢Å¡Â  <?= e($err) ?></div>
+      <div class="alert error">&#9888; <?= e($err) ?></div>
     <?php endif; ?>
 
     <div class="form-group">
@@ -121,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             justify-content:center;
             padding:0;
           "
-        >Ã°Å¸â€˜Â</button>
+        >&#128065;</button>
       </div>
 
       <div style="text-align:right;margin-top:6px">
@@ -132,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <button type="submit" class="btn gold" style="width:100%;justify-content:center;padding:13px">
-      Sign In Ã¢â€ â€™
+      Sign In &rarr;
     </button>
 
 
@@ -230,7 +230,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <p style="text-align:center;margin-top:20px;font-size:0.88rem;color:var(--muted)">
       New here?
       <a href="register.php" style="color:var(--primary);font-weight:600">
-        Create an account Ã¢â€ â€™
+        Create an account &rarr;
       </a>
     </p>
 
@@ -242,17 +242,18 @@ document.addEventListener('DOMContentLoaded', function () {
     const passInput = document.getElementById('loginPass');
     const toggleBtn = document.getElementById('togglePassword');
 
-    toggleBtn.addEventListener('click', function () {
-        if (passInput.type === 'password') {
-            passInput.type = 'text';
-            toggleBtn.textContent = '';
-        } else {
-            passInput.type = 'password';
-            toggleBtn.textContent = 'Ã°Å¸â€˜Â';
-        }
-
-        passInput.focus();
-    });
+    if (toggleBtn && passInput) {
+        toggleBtn.addEventListener('click', function () {
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                toggleBtn.textContent = '\u{1F576}';
+            } else {
+                passInput.type = 'password';
+                toggleBtn.innerHTML = '&#128065;';
+            }
+            passInput.focus();
+        });
+    }
 });
 </script>
 

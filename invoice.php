@@ -113,7 +113,7 @@ $items = $conn->query("SELECT * FROM order_items WHERE order_id = " . (int) $id)
 
     <div class="row">
         <div>
-            <strong>Invoice #<?= e($o['order_number'] ?: $id) ?></strong><br>
+            <strong>Invoice #<?= e((isset($o['order_number']) && $o['order_number'] !== '') ? $o['order_number'] : $id) ?></strong><br>
             Date: <?= date('d M Y', strtotime($o['created_at'])) ?><br>
             Status: <?= e($o['order_status']) ?>
         </div>

@@ -94,7 +94,7 @@ if(is_logged_in()){
             <select name="category">
                 <option value="">All Categories</option>
                 <?php foreach($cat_list as $c): ?>
-                <option <?= strcasecmp($cat,$c)===0 ? 'selected' : '' ?>><?=e($c)?></option>
+                <option value="<?=e($c)?>" <?= strcasecmp($cat,$c)===0 ? 'selected' : '' ?>><?=e($c)?></option>
                 <?php endforeach; ?>
             </select>
         </div>

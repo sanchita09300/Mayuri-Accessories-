@@ -8,11 +8,11 @@ if (isset($_GET['reset'])) {
     redirect('register.php');
 }
 
-$step = $_SESSION['reg_step'] ?? 'form'; // form ÃƒÂ¢?? otp ÃƒÂ¢?? done
+$step = $_SESSION['reg_step'] ?? 'form'; // form -> otp -> done
 $err = '';
 $success = '';
 
-// ÃƒÂ¢??ÃƒÂ¢?? STEP 1: Submit registration form ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??
+// STEP 1: Submit registration form
 if($_SERVER['REQUEST_METHOD']==='POST'){ verify_csrf(); }
 if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['action']) && $_POST['action']==='register'){
     $name  = trim($_POST['name']);
@@ -63,7 +63,7 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['action']) && $_POST['act
     }
 }
 
-// ÃƒÂ¢??ÃƒÂ¢?? STEP 2: Verify OTP ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??
+// STEP 2: Verify OTP
 if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['action']) && $_POST['action']==='verify_otp'){
     $email = $_SESSION['pending_reg']['email'] ?? '';
     $otp   = preg_replace('/\D/', '', $_POST['otp'] ?? '');
@@ -90,7 +90,7 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['action']) && $_POST['act
     }
 }
 
-// ÃƒÂ¢??ÃƒÂ¢?? STEP 2: Resend OTP ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??ÃƒÂ¢??
+// STEP 2: Resend OTP
 if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['action']) && $_POST['action']==='resend_otp'){
     $email = $_SESSION['pending_reg']['email'] ?? '';
     $name  = $_SESSION['pending_reg']['name']  ?? '';
@@ -121,7 +121,7 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['action']) && $_POST['act
       <h1 style="font-size:1.6rem">Create Account</h1>
       <p class="form-subtitle">Join MAYURI and discover your perfect accessories</p>
     </div>
-    <?php if($err) echo '<div class="alert error">  '.$err.'</div>'; ?>
+    <?php if($err) echo '<div class="alert error">&#9888; '.$err.'</div>'; ?>
 
 
 <!-- Google Sign-In -->
@@ -236,7 +236,7 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['action']) && $_POST['act
       <label>Password</label>
       <div style="position:relative">
         <input type="password" name="password" id="pass1" placeholder="Minimum 8 characters" required minlength="8">
-        <button type="button" onclick="togglePwd('pass1',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:1rem"></button>
+        <button type="button" onclick="togglePwd('pass1',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:1rem">&#128065;</button>
       </div>
       <!-- Password strength bar -->
       <div id="strength-bar" style="margin-top:6px;height:4px;border-radius:2px;background:var(--border);overflow:hidden">
@@ -248,15 +248,15 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['action']) && $_POST['act
       <label>Confirm Password</label>
       <div style="position:relative">
         <input type="password" name="password2" id="pass2" placeholder="Re-enter your password" required>
-        <button type="button" onclick="togglePwd('pass2',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:1rem"></button>
+        <button type="button" onclick="togglePwd('pass2',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:1rem">&#128065;</button>
       </div>
       <small id="match-label" style="font-size:0.76rem"></small>
     </div>
     <button type="submit" class="btn gold" style="width:100%;justify-content:center;padding:13px;margin-top:4px">
-      Send Verification Code ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢
+      Send Verification Code &rarr;
     </button>
     <p style="text-align:center;margin-top:20px;font-size:0.88rem;color:var(--muted)">
-      Already have an account? <a href="login.php" style="color:var(--primary);font-weight:600">Sign in </a>
+      Already have an account? <a href="login.php" style="color:var(--primary);font-weight:600">Sign in &rarr;</a>
     </p>
   </form>
 
@@ -264,13 +264,13 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['action']) && $_POST['act
   <!-- ===== OTP VERIFICATION ===== -->
   <div class="form" style="text-align:center">
     <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;letter-spacing:0.3em;color:var(--gold);text-transform:uppercase;margin-bottom:16px">MAYURI</div>
-    <div style="font-size:2.5rem;margin-bottom:12px"></div>
+    <div style="font-size:2.5rem;margin-bottom:12px">&#128274;</div>
     <h1 style="font-size:1.5rem;margin-bottom:8px">Check Your OTP</h1>
     <p style="color:var(--muted);font-size:0.9rem;margin-bottom:28px">
       We've sent a 6-digit code to<br><strong><?=e($_SESSION['pending_reg']['email']??'')?></strong><br><strong>+91 <?=e($_SESSION['pending_reg']['phone']??'')?></strong>
     </p>
-    <?php if($err)    echo '<div class="alert error" style="text-align:left">ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¡Ãƒâ€šÃ‚Â  '.$err.'</div>'; ?>
-    <?php if($success) echo '<div class="alert success" style="text-align:left">ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ '.$success.'</div>'; ?>
+    <?php if($err)    echo '<div class="alert error" style="text-align:left">&#9888; '.$err.'</div>'; ?>
+    <?php if($success) echo '<div class="alert success" style="text-align:left">&#10003; '.$success.'</div>'; ?>
 
     <form method="post" id="otpForm">
       <?=csrf_field()?>
@@ -284,7 +284,7 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['action']) && $_POST['act
         <input type="hidden" name="otp" id="otpHidden">
       </div>
       <button type="submit" class="btn gold" style="width:100%;justify-content:center;padding:13px">
-        Verify & Create Account 
+        Verify &amp; Create Account
       </button>
     </form>
 
@@ -308,7 +308,7 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['action']) && $_POST['act
 function togglePwd(id, btn){
   var f = document.getElementById(id);
   f.type = f.type==='password'?'text':'password';
-  btn.textContent = f.type==='password'?'ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ‚Â':'ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ‚ÂÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ°Ã…Â¸Ã¢â‚¬â€Ã‚Â¨';
+  btn.innerHTML = f.type==='password'?'&#128065;':'&#128576;';
 }
 // Password strength
 var p1 = document.getElementById('pass1');
@@ -334,11 +334,11 @@ if(p2){
   p2.addEventListener('input',function(){
     var lbl=document.getElementById('match-label');
     if(!this.value) { lbl.textContent=''; return; }
-    if(this.value===p1.value){ lbl.textContent='ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ Passwords match'; lbl.style.color='#27ae60'; }
-    else { lbl.textContent='ÃƒÂ¢Ã…â€œÃ¢â‚¬â€ Passwords do not match'; lbl.style.color='#e74c3c'; }
+    if(this.value===p1.value){ lbl.textContent='\u2714 Passwords match'; lbl.style.color='#27ae60'; }
+    else { lbl.textContent='\u2718 Passwords do not match'; lbl.style.color='#e74c3c'; }
   });
 }
-// OTP boxes ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬ÂÃƒâ€šÃ‚Â auto-advance
+// OTP boxes - auto-advance
 var boxes = document.querySelectorAll('.otp-box');
 boxes.forEach(function(box, i){
   box.addEventListener('input', function(){

@@ -79,7 +79,7 @@ $orders=$stmt->get_result();
             <tbody>
             <?php while($o = $orders->fetch_assoc()): ?>
             <tr>
-                <td style="font-weight:600;color:var(--primary)"><?=e($o['order_number'] ?: '#'.$o['id'])?> <a href="../invoice.php?order_id=<?=$o['id']?>" target="_blank" style="font-size:.7rem">Invoice</a></td>
+                <td style="font-weight:600;color:var(--primary)"><?=e((isset($o['order_number']) && $o['order_number'] !== '') ? $o['order_number'] : '#'.$o['id'])?> <a href="../invoice.php?order_id=<?=$o['id']?>" target="_blank" style="font-size:.7rem">Invoice</a></td>
                 <td>
                     <strong><?=e($o['customer_name'])?></strong>
                     <div style="font-size:0.78rem;color:var(--muted);max-width:160px"><?=e($o['address'])?></div>
